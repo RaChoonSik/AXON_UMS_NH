@@ -1,0 +1,138 @@
+<%--
+	/**********************************************************
+	*	작성자 : 김준희
+	*	작성일시 : 2024.05.15
+	*	설명 : 연계기본관리 목록 
+	**********************************************************/
+--%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/jsp/inc/taglib.jsp" %>
+						<!-- 목록// -->
+						<div class="graybox">
+							<div class="title-area">
+								<h3 class="h3-title">목록</h3>
+								<span class="total">Total: <em><c:out value="${pageUtil.totalRow}"/></em></span>
+
+								<!-- 버튼// -->
+								<div class="btn-wrap">
+									<c:if test="${'Y' eq NEO_ADMIN_YN}">
+										<button type="button" class="btn fullblue plus" onclick="fn.popupOpen('#popup_file_jsp');">JSP업로드</button>
+									</c:if>
+									<button type="button" class="btn fullblue plus" onclick="goAdd();">신규등록</button>
+									<button type="button" class="btn" onclick="goDelete();">삭제</button>
+									
+									<!-- 페이지 정렬// --> <!-- 이부분 추가 -->
+<c:if test="${'Y' ne searchVO.popupYn }">
+									<div class="select">
+										<select  onchange="goChagePerPageRows(this.value);" title="페이지당 결과">
+											<c:if test="${fn:length(perPageList) > 0}">
+												<c:forEach items="${perPageList}" var="perPage">
+													<option value="<c:out value='${perPage.cdNm}'/>" <c:if test="${perPage.cdNm eq searchVO.rows}"> selected</c:if>><c:out value='${perPage.cdNm}'/>개씩 보기</option>
+												</c:forEach>
+											</c:if>
+										</select>
+									</div>
+</c:if>
+									<!-- //페이지 정렬 --><!--추가 끝-->
+									 
+								</div>
+								<!-- //버튼 -->
+							</div>
+
+							<div class="grid-area">
+								<table class="grid">
+									<caption>그리드 정보</caption>
+									<colgroup>
+										<col style="width:5%;">
+										<col style="width:5%;">
+										<col style="width:10%;">
+										<col style="width:13%;">
+										<col style="width:12%;">
+										<col style="width:10%;">
+										<col style="width:12%;">
+									</colgroup>
+									<thead>
+										<tr>
+											<th scope="col">NO</th>
+											<th scope="col">
+												
+												<label for="ifBasicAllChk"><input type="checkbox" id="ifBasicAllChk" name="ifBasicAllChk" onclick='selectAll(this)'><span></span></label>
+												
+											</th>
+											<th scope="col">연계아이디</th>
+											<th scope="col">연계명</th>
+											<th scope="col">인터페이스형태</th>
+											<th scope="col">전송형태</th>
+<c:if test="${'Y' ne searchVO.popupYn }">
+											<th scope="col">등록일</th>
+</c:if>											
+<c:if test="${'Y' eq searchVO.popupYn }">											
+											<th scope="col">선택</th>
+</c:if>
+											
+											
+										</tr>
+									</thead>
+									<tbody>
+										<!-- 데이터가 있을 경우// -->
+										<c:if test="${fn:length(ifBasicList) > 0}">
+											<c:forEach items="${ifBasicList}" var="ifBasic" varStatus="ifBasicStatus">
+												<tr>
+													<td><c:out value="${pageUtil.totalRow - (pageUtil.currPage-1)*pageUtil.pageRow - ifBasicStatus.index}"/></td>
+													<td align="center">
+														<label for="checkbox_<c:out value='${ifBasicStatus.count}'/>"><input type="checkbox" id="checkbox_<c:out value='${ifBasicStatus.count}'/>" name="delIfCampId" value="<c:out value='${ifBasic.ifCampId}'/>"><span></span></label>
+														
+														<input type="hidden" id="tbIfCampId<c:out value='${ifBasicStatus.index}'/>"  value="<c:out value='${ifBasic.ifCampId}'/>">
+														<input type="hidden" id="tbIfCampNm<c:out value='${ifBasicStatus.index}'/>"  value="<c:out value='${ifBasic.ifCampName}'/>">
+														
+													
+														<input type="hidden" id="tbCampNo<c:out value='${ifBasicStatus.index}'/>"  value="<c:out value='${ifBasic.campNo}'/>">
+														<input type="hidden" id="tbCampNm<c:out value='${ifBasicStatus.index}'/>"  value="<c:out value='${ifBasic.campNm}'/>">
+														<input type="hidden" id="tbCampTy<c:out value='${ifBasicStatus.index}'/>"  value="<c:out value='${ifBasic.campTy}'/>">
+														<input type="hidden" id="tbMergeKey<c:out value='${ifBasicStatus.index}'/>"  value="<c:out value='${ifBasic.mergeKey}'/>">
+														
+														<input type="hidden" id="tbSegNo<c:out value='${ifBasicStatus.index}'/>"  value="<c:out value='${ifBasic.segNo}'/>">
+														<input type="hidden" id="tbSegNm<c:out value='${ifBasicStatus.index}'/>"  value="<c:out value='${ifBasic.segNm}'/>">
+														<input type="hidden" id="tbSecuMailYn<c:out value='${ifBasicStatus.index}'/>"  value="<c:out value='${ifBasic.secuMailYn}'/>">
+														
+													</td>
+													<td>
+													<c:if test="${'Y' ne searchVO.popupYn }">
+														<a href="javascript:goUpdate('<c:out value='${ifBasic.ifCampId}'/>')" class="bold"><c:out value='${ifBasic.ifCampId}'/></a>
+													</c:if>
+													<c:if test="${'Y' eq searchVO.popupYn  }">
+														<a href="javascript:selectRow('<c:out value='${ifBasicStatus.index}'/>')" class="bold"><c:out value='${ifBasic.ifCampId}'/> 선택</a>
+													</c:if>	
+													</td>
+													<td><c:out value="${ifBasic.ifCampName}"/></td>
+													<td><c:out value="${ifBasic.interfaceTypeNm}"/></td>
+													<td><c:out value="${ifBasic.sendTypeNm}"/></td>
+<c:if test="${'Y' ne searchVO.popupYn }">													
+													<td><c:out value="${ifBasic.regDate}"/></td>
+</c:if>
+<c:if test="${'Y' eq searchVO.popupYn }">
+													<td>
+													<a href="javascript:goUpdate('<c:out value='${ifBasic.ifCampId}'/>')" class="bold">수정</a>
+													</td>
+</c:if>													
+												</tr>
+											</c:forEach>
+										</c:if>
+										<!-- 데이터가 없을 경우// -->
+										<c:if test="${empty ifBasicList}">
+											<tr>
+												<td colspan="7" class="no_data">등록된 내용이 없습니다.</td>
+											</tr>
+										</c:if>					
+										<!-- //데이터가 없을 경우 -->
+									</tbody>
+								</table>
+							</div>
+						</div>
+						<!-- //목록 -->
+					
+						<!-- 페이징// -->
+						<div class="paging">
+							${pageUtil.pageHtml}
+						</div>
+						<!-- //페이징 -->

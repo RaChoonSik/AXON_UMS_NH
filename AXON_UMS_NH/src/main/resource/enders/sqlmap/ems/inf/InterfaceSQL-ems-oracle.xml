@@ -1,0 +1,841 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.enders.ums.ems.inf.dao.InterfaceMapper">
+	<!-- ************ 연계 관리  ******************-->
+	<select id="getIfBasicList" parameterType="ifBasicVO" resultType="ifBasicVO">
+		SELECT *
+		  FROM (
+				SELECT A.IF_CAMP_ID
+					 , A.IF_CAMP_NAME
+					 , A.INTERFACE_TYPE
+					 , A.SEND_TYPE
+					 , A.RESPONSE_YN
+					 , A.REG_ID,TO_CHAR( A.REG_DATE,'YYYY-MM-DD') REG_DATE
+					 , A.UPD_ID
+					 , A.UPD_DATE
+					 , B.CD_NM INTERFACE_TYPE_NM
+					 , C.CD_NM SEND_TYPE_NM
+					 , A.DEPT_NO
+					 , A.USER_ID
+					 , A.SECU_MAIL_YN
+					 , A.CAMP_NO
+					 , A.SEG_NO
+					 , E.CAMP_NM
+					 , F.SEG_NM
+					 , E.CAMP_TY
+					 , F.MERGE_KEY
+					 , F.MERGE_COL
+					 , ROW_NUMBER() OVER (ORDER BY A.IF_CAMP_ID DESC) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT 
+			      FROM IF_BASIC_INFO A 
+                  LEFT OUTER JOIN (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C201' AND UILANG = '000' ) B ON ( A.INTERFACE_TYPE = B.CD)
+                  LEFT OUTER JOIN (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C202' AND UILANG = '000' ) C ON ( A.SEND_TYPE = C.CD)
+                  LEFT OUTER JOIN NEO_CAMPAIGN E ON ( A.CAMP_NO = E.CAMP_NO)
+                  LEFT OUTER JOIN NEO_SEGMENT  F ON ( A.SEG_NO = F.SEG_NO)
+				 WHERE 1 = 1 
+				<if test="searchIfCampId != null and searchIfCampId != ''">
+				   AND A.IF_CAMP_ID LIKE '%' || #{searchIfCampId} || '%'
+				</if>
+				<if test="searchIfCampName != null and searchIfCampName != ''">
+				   AND A.IF_CAMP_NAME LIKE '%' || #{searchIfCampName} || '%'
+				</if>
+				<if test="searchDeptNo > 0 ">
+				   AND  A.DEPT_NO = #{searchDeptNo}
+				</if>
+				<if test="existCheckCampId != null and existCheckCampId != ''">
+				   AND A.IF_CAMP_ID = #{existCheckCampId} 
+				</if>
+				<if test="searchStatus != null and searchStatus != ''">
+				   AND  A.STATUS = #{searchStatus}
+				</if>
+				ORDER BY A.REG_DATE DESC			
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<select id="getIfBasicInfo" parameterType="ifBasicVO" resultType="ifBasicVO">
+		SELECT IF_CAMP_ID
+		     , IF_CAMP_NAME
+			 , INTERFACE_TYPE
+			 , SEND_TYPE
+			 , RESPONSE_YN
+			 , REG_ID
+			 , REG_DATE
+			 , UPD_ID
+			 , UPD_DATE
+			 , DEPT_NO
+			 , SEG_NO
+			 , CAMP_NO
+			 , USER_ID
+			 , STATUS
+			 , RESP_EAI_ID
+			 , IT_DEV_NM
+			 , SECU_MAIL_YN
+			 , (SELECT X.USER_NM FROM NEO_USER X WHERE A.REG_ID = X.USER_ID ) REG_NM
+			 , (SELECT X.USER_NM FROM NEO_USER X WHERE A.UPD_ID = X.USER_ID ) UPD_NM
+		  FROM IF_BASIC_INFO A
+		 WHERE IF_CAMP_ID = #{ifCampId}
+	</select>
+	
+	<insert id="insertIfBasicInfo" parameterType="ifBasicVO">
+	    INSERT INTO IF_BASIC_INFO
+		(
+			  IF_CAMP_ID
+		    , IF_CAMP_NAME
+			, INTERFACE_TYPE
+			, SEND_TYPE
+			, RESPONSE_YN
+			, DEPT_NO
+			, USER_ID
+			, STATUS
+			, RESP_EAI_ID
+			, IT_DEV_NM
+			, SECU_MAIL_YN
+			, REG_ID
+			, REG_DATE
+			, UPD_ID
+			, UPD_DATE
+		)
+		VALUES
+		(
+			  #{ifCampId}
+			, #{ifCampName}
+			, #{interfaceType}
+			, #{sendType}
+			, #{responseYn}
+			, #{deptNo}
+			, #{userId}
+			, #{status}
+			, #{respEaiId}
+			, #{itDevNm}
+			, #{secuMailYn}
+			, #{regId}
+			, SYSDATE
+			, #{regId}
+			, SYSDATE
+		)
+	</insert>
+	
+	<update id="updateIfBasicInfo" parameterType="ifBasicVO">
+		UPDATE IF_BASIC_INFO
+		   SET IF_CAMP_NAME = #{ifCampName}
+		     , INTERFACE_TYPE = #{interfaceType}
+		     , SEND_TYPE =#{sendType}
+			 , RESPONSE_YN = #{responseYn}
+			 , RESP_EAI_ID = #{respEaiId}
+			 , DEPT_NO = #{deptNo}
+			 , USER_ID = #{userId}
+			 , IT_DEV_NM = #{itDevNm}
+			 , SECU_MAIL_YN = #{secuMailYn}
+			 , STATUS = #{status}
+		 WHERE IF_CAMP_ID = #{ifCampId}
+	</update>
+	
+	<delete id="deleteIfBasicInfo" parameterType="ifBasicVO">
+		DELETE IF_BASIC_INFO
+		 WHERE IF_CAMP_ID = #{ifCampId}
+	</delete>
+	
+	<delete id="deleteIfMappInfoByIfCampId" parameterType="ifBasicVO">
+		DELETE IF_MAPP_INFO
+		WHERE IF_CAMP_ID = #{ifCampId}
+	</delete>
+<!-- 	
+	<delete id="deleteNeoCampaign" parameterType="campaignVO">
+		DELETE NEO_CAMPAIGN
+		WHERE  CAMP_NO = #{campNo}
+	</delete>
+	
+	<delete id="deleteNeoSegment" parameterType="segmentVO">
+		DELETE NEO_SEGMENT
+		WHERE  SEG_NO = #{segNo}
+	</delete>
+	 -->
+	<select id="getIfMappNewList" parameterType="ifMappVO" resultType="ifMappVO">
+		SELECT T1.IF_MAIL_COL
+			 , T1.IF_MAIL_COL_NM
+			 , T2.IF_CAMP_ID
+			 , T2.IF_COL
+			 , T2.IF_LIST_COL
+			 , T2.META_COL
+			 , T2.IF_COL_NAME
+			 , T2.IF_COL_TYPE
+			 , T2.ENC_TYPE
+			 , T2.SORT_NUM
+			 , T2.RETURN_YN
+       		 , COUNT(1) OVER() TOTAL_COUNT
+		  FROM (
+				SELECT COLUMN_NAME IF_MAIL_COL
+				     , COMMENTS IF_MAIL_COL_NM
+				  FROM ALL_COL_COMMENTS
+				 WHERE TABLE_NAME = 'IF_MAIL_INFO'
+				   AND COLUMN_NAME like 'IF_%'
+				   <!-- AND OWNER = 'EMLADM' -->   
+			 ) T1,
+		     (
+				SELECT '' IF_CAMP_ID,'MAKE_DATE' IF_COL,'@' IF_LIST_COL,'IF_MAKE_DATE' META_COL, '연계생성일' IF_COL_NAME,'001' IF_COL_TYPE,''  ENC_TYPE, '1' SORT_NUM, 'Y' RETURN_YN 
+				  FROM DUAL
+				 UNION ALL
+				SELECT '' IF_CAMP_ID,'MAKE_SEQNO' IF_COL,'@' IF_LIST_COL,'IF_MAKE_SEQNO' META_COL,'연계생성순번' IF_COL_NAME,'001' IF_COL_TYPE,''  ENC_TYPE, '2' SORT_NUM, 'Y' RETURN_YN 
+				  FROM DUAL
+				 UNION ALL
+				SELECT '' IF_CAMP_ID,'CAMP_ID' IF_COL,'@' IF_LIST_COL ,'IF_CAMP_ID' META_COL,'연계생성순번' IF_COL_NAME,'001' IF_COL_TYPE,''  ENC_TYPE, '3' SORT_NUM , 'Y' RETURN_YN
+				  FROM DUAL
+				 UNION ALL
+				SELECT '' IF_CAMP_ID,'ID' IF_COL,'@' IF_LIST_COL,'IF_ID' META_COL,'고객아이디' IF_COL_NAME,'001' IF_COL_TYPE,''  ENC_TYPE, '4' SORT_NUM , 'Y' RETURN_YN
+				  FROM DUAL
+				 UNION ALL
+				SELECT '' IF_CAMP_ID,'NAME' IF_COL,'@' IF_LIST_COL,'IF_NAME' META_COL,'고객이름' IF_COL_NAME,'001' IF_COL_TYPE,''  ENC_TYPE, '5' SORT_NUM , 'Y' RETURN_YN
+				  FROM DUAL
+				 UNION ALL
+				SELECT '' IF_CAMP_ID,'EMAIL' IF_COL,'@' IF_LIST_COL,'IF_EMAIL' META_COL,'고객이메일' IF_COL_NAME,'001' IF_COL_TYPE,'001' ENC_TYPE, '6' SORT_NUM , 'Y' RETURN_YN
+				  FROM DUAL
+				 UNION ALL
+				SELECT '' IF_CAMP_ID,'ENCKEY' IF_COL,'@' IF_LIST_COL,'IF_ENCKEY' META_COL,'보안메일키' IF_COL_NAME,'001' IF_COL_TYPE,''  ENC_TYPE, '7' SORT_NUM , 'N' RETURN_YN
+				  FROM DUAL
+		     ) T2
+		 WHERE T1.IF_MAIL_COL = T2.META_COL
+		 ORDER BY T1.IF_MAIL_COL_NM
+	</select> 
+	
+	<select id="getIfMappList" parameterType="ifMappVO" resultType="ifMappVO">
+		SELECT A.IF_CAMP_ID
+			 , A.IF_COL,DECODE(A.IF_LIST_COL,'@','', A.IF_LIST_COL) IF_LIST_COL
+			 , A.IF_COL_NAME
+			 , A.META_COL
+		     , A.IF_COL_TYPE
+			 , A.ENC_TYPE
+			 , A.SORT_NUM
+			 , A.RETURN_YN
+		     , A.REG_ID
+			 , TO_CHAR(A.REG_DATE,'YYYY-MM-DD') REG_DATE
+			 , A.UPD_ID
+			 , A.UPD_DATE
+			 , B.IF_CAMP_NAME
+			 , C.CD_NM IF_COL_TYPE_NM
+			 , D.CD_NM ENC_TYPE_NM
+	         , ROW_NUMBER() OVER (ORDER BY A.SORT_NUM ASC) SEQ
+			 , COUNT(1) OVER() TOTAL_COUNT 
+	      FROM IF_MAPP_INFO A
+	      LEFT OUTER JOIN IF_BASIC_INFO B ON (A.IF_CAMP_ID = B.IF_CAMP_ID) 
+	      LEFT OUTER JOIN (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C203' AND UILANG = '000' ) C ON (A.IF_COL_TYPE = C.CD) 
+	      LEFT OUTER JOIN (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C204' AND UILANG = '000' ) D ON (A.ENC_TYPE = D.CD) 
+		 WHERE A.IF_CAMP_ID   = #{ifCampId} 
+		 ORDER BY A.SORT_NUM			
+	</select>
+	 
+	<select id="getIfMailColList"  resultType="ifMappVO">
+		SELECT COLUMN_NAME IF_MAIL_COL
+			 , COMMENTS IF_MAIL_COL_NM
+		  FROM ALL_COL_COMMENTS
+		 WHERE TABLE_NAME = 'IF_MAIL_INFO'
+		   AND COLUMN_NAME like 'IF_%'
+		 ORDER BY COMMENTS
+	</select>
+	 
+	<select id="getIfMappInfo" parameterType="ifMappVO" resultType="ifMappVO">
+		SELECT A.IF_CAMP_ID
+			 , A.IF_COL
+			 , DECODE( A.IF_LIST_COL,'@','', A.IF_LIST_COL) IF_LIST_COL
+			 , A.IF_COL_NAME
+			 , A.META_COL
+		     , A.IF_COL_TYPE
+			 , A.ENC_TYPE
+			 , A.SORT_NUM
+			 , A.REG_ID
+			 , A.REG_DATE
+			 , A.UPD_ID
+			 , A.UPD_DATE
+			 , (SELECT X.USER_NM FROM NEO_USER X WHERE A.REG_ID = X.USER_ID ) REG_NM
+			 , (SELECT X.USER_NM FROM NEO_USER X WHERE A.UPD_ID = X.USER_ID ) UPD_NM
+			 , B.IF_CAMP_NAME 
+		  FROM IF_MAPP_INFO A,
+		       IF_BASIC_INFO B
+		 WHERE A.IF_CAMP_ID = #{ifCampId}
+		   AND A.IF_COL = #{ifCol}
+		   AND A.IF_LIST_COL = NVL( #{ifListCol}, '@' )
+		   AND A.IF_CAMP_ID = B.IF_CAMP_ID
+	</select>
+	 
+	<insert id="insertIfMappInfo" parameterType="ifMappVO">
+	    INSERT INTO IF_MAPP_INFO
+		(
+			 IF_CAMP_ID
+			, IF_COL
+			, IF_LIST_COL
+			, IF_COL_NAME
+			, META_COL
+			, IF_COL_TYPE
+			, ENC_TYPE
+			, RETURN_YN
+			, SORT_NUM
+			, REG_ID
+			, REG_DATE
+			, UPD_ID
+			, UPD_DATE
+		)
+		VALUES
+		(
+			  #{ifCampId}
+			, #{ifCol}
+			, NVL(#{ifListCol},'@')
+			, #{ifColName}
+			, #{metaCol}
+			, #{ifColType}
+			, #{encType}
+			, #{returnYn}
+			, #{sortNum}
+			, #{regId}
+			, SYSDATE
+			, #{regId}
+			, SYSDATE
+		)
+	</insert>
+	 
+	<update id="mergeIfMappInfo" parameterType="ifMappVO">
+	    MERGE INTO IF_MAPP_INFO T
+	    USING DUAL ON 
+	    (
+	     	T.IF_CAMP_ID = #{ifCampId} AND T.IF_COL = #{ifCol} AND  IF_LIST_COL = NVL(#{ifListCol},'@')
+		) 
+		WHEN MATCHED THEN 
+		     UPDATE  SET META_COL    = #{metaCol}
+		               , IF_COL_NAME = #{ifColName}
+		               , IF_COL_TYPE = #{ifColType}
+		               , ENC_TYPE    = #{encType}
+		               , RETURN_YN   = #{returnYn}
+		               , SORT_NUM    = #{sortNum}
+		               , UPD_ID      = #{regId}
+		               , UPD_DATE    = SYSDATE
+        WHEN NOT MATCHED THEN
+		INSERT(
+			    IF_CAMP_ID
+			  , IF_COL
+			  , IF_LIST_COL
+			  , IF_COL_NAME
+			  , META_COL
+			  , IF_COL_TYPE
+			  , ENC_TYPE
+			  , RETURN_YN
+			  , SORT_NUM
+			  , REG_ID
+			  , REG_DATE
+			  , UPD_ID
+			  , UPD_DATE
+			  )	
+			VALUES
+			(
+				  #{ifCampId}
+				, #{ifCol}
+				, NVL(#{ifListCol},'@')
+				, #{ifColName}
+				, #{metaCol}
+				, #{ifColType}
+				, #{encType}
+				, #{returnYn}
+				, #{sortNum} 
+				, #{regId}
+				, SYSDATE
+				, #{regId}
+				, SYSDATE
+			)
+	</update>
+	 
+	<update id="updateIfMappInfo" parameterType="ifMappVO">
+		UPDATE IF_MAPP_INFO
+		   SET IF_COL      = #{ifCol}
+		     , IF_COL_NAME = #{ifColName}
+		     , META_COL    = #{metaCol}
+		     , IF_COL_TYPE = #{ifColType}
+		     , ENC_TYPE    = #{encType}
+		     , SORT_NUM    = #{sortNum}
+		     , UPD_ID      = #{updId}
+		     , UPD_DATE    = SYSDATE
+		WHERE IF_CAMP_ID  = #{ifCampId}
+		  AND IF_COL      = #{ifColOld}
+		  AND IF_LIST_COL = NVL(#{ifListCol},'@')
+	</update>
+	
+	<delete id="deleteIfMappInfo" parameterType="ifMappVO">
+		DELETE IF_MAPP_INFO
+		 WHERE IF_CAMP_ID  = #{ifCampId}
+		   AND IF_COL      = #{ifCol}
+		   AND IF_LIST_COL = #{ifListCol}
+	</delete>
+	
+	<select id="getIfMappCount" parameterType="ifMappVO" resultType="ifMappVO">
+		SELECT  COUNT(1) CNT 
+		  FROM  IF_MAPP_INFO A
+		 WHERE  A.IF_CAMP_ID = #{ifCampId}
+	</select>
+	 
+	<delete id="deleteIfMappList" parameterType="ifMappVO">
+		DELETE IF_MAPP_INFO
+		 WHERE IF_CAMP_ID  = #{ifCampId}
+	</delete> 
+	
+	<update id="updateCampaignInfoByIf" parameterType="campaignVO">
+		UPDATE NEO_CAMPAIGN
+		   SET CAMP_NM   = #{campNm}
+			 , CAMP_DESC = #{campDesc}
+			 , USER_ID   = #{userId}
+			 , CAMP_TY   = #{campTy}
+			 , STATUS    = #{status}
+			 , DEPT_NO   = #{deptNo}
+			 , UP_ID     = #{upId}
+			 , UP_DT     = #{upDt}
+		 WHERE EAI_CAMP_NO   = #{eaiCampNo}
+	</update>
+	
+<!-- 	<insert id="insertKjSegmentInfo" parameterType="segmentVO">
+		INSERT INTO NEO_SEGMENT
+		(
+			  SEG_NO
+			, USER_ID
+			, DB_CONN_NO
+			, SEG_NM
+			, SEG_DESC
+			, CREATE_TY
+			, QUERY
+			, SEPARATOR_
+			, SELECT_
+			, FROM_
+			, WHERE_
+			, ORDERBY_
+			, MERGE_KEY
+			, MERGE_COL
+			, SEG_FL_PATH
+			, SRC_WHERE
+			, TOT_CNT
+			, REG_ID
+			, REG_DT
+			, STATUS
+			, SERVICE_GB
+			, DEPT_NO
+		)
+		VALUES
+		(
+			  #{segNo}
+			, #{userId}
+			, #{dbConnNo}
+			, #{segNm}
+			, #{segDesc}
+			, #{createTy}
+			, #{query}
+			, #{separatorChar}
+			, #{selectSql}
+			, #{fromSql}
+			, #{whereSql}
+			, #{orderbySql}
+			, #{mergeKey}
+			, #{mergeCol}
+			, #{segFlPath}
+			, #{srcWhere}
+			, #{totCnt}
+			, #{regId}
+			, #{regDt}
+			, #{status}
+			, #{serviceGb}
+			, #{deptNo}
+		)
+	</insert>
+	
+	
+	
+	<insert id="insertKjSegmentRealInfo" parameterType="segmentVO">
+		INSERT INTO NEO_SEGMENT_REAL
+		(
+			  SEG_NO
+			, USER_ID
+			, DB_CONN_NO
+			, SEG_NM
+			, SEG_DESC
+			, CREATE_TY
+			, QUERY
+			, SEPARATOR_
+			, SELECT_
+			, FROM_
+			, WHERE_
+			, ORDERBY_
+			, MERGE_KEY
+			, MERGE_COL
+			, SEG_FL_PATH
+			, SRC_WHERE
+			, TOT_CNT
+			, REG_ID
+			, REG_DT
+			, STATUS
+			, SERVICE_GB
+			, DEPT_NO
+		)
+		VALUES
+		(
+			  #{segNo}
+			, #{userId}
+			, #{dbConnNo}
+			, #{segNm}
+			, #{segDesc}
+			, #{createTy}
+			, #{query}
+			, #{separatorChar}
+			, #{selectSql}
+			, #{fromSql}
+			, #{whereSql}
+			, #{orderbySql}
+			, #{mergeKey}
+			, #{mergeCol}
+			, #{segFlPath}
+			, #{srcWhere}
+			, #{totCnt}
+			, #{regId}
+			, #{regDt}
+			, #{status}
+			, #{serviceGb}
+			, #{deptNo}
+		)
+	</insert>
+	
+	
+	<insert id="insertKjSegmentRetryInfo" parameterType="segmentVO">
+		INSERT INTO NEO_SEGMENT_RETRY
+		(
+			  SEG_NO
+			, USER_ID
+			, DB_CONN_NO
+			, SEG_NM
+			, SEG_DESC
+			, CREATE_TY
+			, QUERY
+			, SEPARATOR_
+			, SELECT_
+			, FROM_
+			, WHERE_
+			, ORDERBY_
+			, MERGE_KEY
+			, MERGE_COL
+			, SEG_FL_PATH
+			, SRC_WHERE
+			, TOT_CNT
+			, REG_ID
+			, REG_DT
+			, STATUS
+			, SERVICE_GB
+			, DEPT_NO
+		)
+		VALUES
+		(
+			  #{segNo}
+			, #{userId}
+			, #{dbConnNo}
+			, #{segNm}
+			, #{segDesc}
+			, #{createTy}
+			, #{query}
+			, #{separatorChar}
+			, #{selectSql}
+			, #{fromSql}
+			, #{whereSql}
+			, #{orderbySql}
+			, #{mergeKey}
+			, #{mergeCol}
+			, #{segFlPath}
+			, #{srcWhere}
+			, #{totCnt}
+			, #{regId}
+			, #{regDt}
+			, #{status}
+			, #{serviceGb}
+			, #{deptNo}
+		)
+	</insert>
+	
+	
+	<update id="updateKjSegmentInfo" parameterType="segmentVO">
+		UPDATE NEO_SEGMENT
+		   SET USER_ID     = #{userId}
+			 , DB_CONN_NO  = #{dbConnNo}
+			 , SEG_NM      = #{segNm}
+			 , SEG_DESC    = #{segDesc}
+			 , CREATE_TY   = #{createTy}
+			 , SELECT_     = #{selectSql}
+			 , FROM_       = #{fromSql}
+			 , WHERE_      = #{whereSql}
+			 , ORDERBY_    = #{orderbySql}
+			 , QUERY       = #{query}
+			 , SEPARATOR_  = #{separatorChar}
+			 , MERGE_KEY   = #{mergeKey}
+			 , MERGE_COL   = #{mergeCol}
+			 , SEG_FL_PATH = #{segFlPath}
+			 , SRC_WHERE   = #{srcWhere}
+			 , TOT_CNT     = #{totCnt}
+			 , UP_ID       = #{upId}
+			 , UP_DT       = #{upDt}
+			 , STATUS      = #{status}
+			 , SERVICE_GB  = #{serviceGb}
+			 , DEPT_NO     = #{deptNo}
+		 WHERE SEG_NO      = #{segNo}
+	</update>
+	
+	
+	<update id="updateKjSegmentRealInfo" parameterType="segmentVO">
+		UPDATE NEO_SEGMENT_REAL
+		   SET USER_ID     = #{userId}
+			 , DB_CONN_NO  = #{dbConnNo}
+			 , SEG_NM      = #{segNm}
+			 , SEG_DESC    = #{segDesc}
+			 , CREATE_TY   = #{createTy}
+			 , SELECT_     = #{selectSql}
+			 , FROM_       = #{fromSql}
+			 , WHERE_      = #{whereSql}
+			 , ORDERBY_    = #{orderbySql}
+			 , QUERY       = #{query}
+			 , SEPARATOR_  = #{separatorChar}
+			 , MERGE_KEY   = #{mergeKey}
+			 , MERGE_COL   = #{mergeCol}
+			 , SEG_FL_PATH = #{segFlPath}
+			 , SRC_WHERE   = #{srcWhere}
+			 , TOT_CNT     = #{totCnt}
+			 , UP_ID       = #{upId}
+			 , UP_DT       = #{upDt}
+			 , STATUS      = #{status}
+			 , SERVICE_GB  = #{serviceGb}
+			 , DEPT_NO     = #{deptNo}
+		 WHERE SEG_NO      = #{segNo}
+	</update>
+	
+	
+	<update id="updateKjSegmentRetryInfo" parameterType="segmentVO">
+		UPDATE NEO_SEGMENT_RETRY
+		   SET USER_ID     = #{userId}
+			 , DB_CONN_NO  = #{dbConnNo}
+			 , SEG_NM      = #{segNm}
+			 , SEG_DESC    = #{segDesc}
+			 , CREATE_TY   = #{createTy}
+			 , SELECT_     = #{selectSql}
+			 , FROM_       = #{fromSql}
+			 , WHERE_      = #{whereSql}
+			 , ORDERBY_    = #{orderbySql}
+			 , QUERY       = #{query}
+			 , SEPARATOR_  = #{separatorChar}
+			 , MERGE_KEY   = #{mergeKey}
+			 , MERGE_COL   = #{mergeCol}
+			 , SEG_FL_PATH = #{segFlPath}
+			 , SRC_WHERE   = #{srcWhere}
+			 , TOT_CNT     = #{totCnt}
+			 , UP_ID       = #{upId}
+			 , UP_DT       = #{upDt}
+			 , STATUS      = #{status}
+			 , SERVICE_GB  = #{serviceGb}
+			 , DEPT_NO     = #{deptNo}
+		 WHERE SEG_NO      = #{segNo}
+	</update>
+	
+	
+	<select id="getKjSegmentRealCount" parameterType="segmentVO" resultType="Integer">
+		SELECT  COUNT(1) CNT 
+		  FROM  NEO_SEGMENT_REAL A
+		 WHERE  A.SEG_NO = #{segNo}
+	</select>
+	
+	
+	<select id="getKjSegmentRetryCount" parameterType="segmentVO" resultType="Integer">
+		SELECT  COUNT(1) CNT 
+		  FROM  NEO_SEGMENT_RETRY A
+		 WHERE  A.SEG_NO = #{segNo}
+	</select>
+	
+	
+	<insert id="insertKjCampaignInfo" parameterType="campaignVO">
+		INSERT INTO NEO_CAMPAIGN
+		(
+			  CAMP_NO
+			, CAMP_NM
+			, CAMP_DESC
+			, USER_ID
+			, CAMP_TY
+			, STATUS
+			, DEPT_NO
+			, REG_DT
+			, REG_ID
+			, UP_ID
+			, UP_DT
+			, EAI_CAMP_NO 
+		)
+		VALUES
+		(
+			  #{campNo}
+			, #{campNm}
+			, #{campDesc}
+			, #{userId}
+			, #{campTy}
+			, #{status}
+			, #{deptNo}
+			, #{regDt}
+			, #{regId}
+			, NULL
+			, NULL 
+			, #{eaiCampNo}
+		)
+	</insert>
+	 	 -->
+ 
+	<select id="getSegmentNo" resultType="segmentVO">
+		SELECT NEO_SEGMENT_SEQ.NEXTVAL SEG_NO
+		FROM   DUAL
+	</select>
+	
+	
+	<select id="getCampaignNo" resultType="campaignVO">
+		SELECT NEO_CAMPAIGN_SEQ.NEXTVAL CAMP_NO
+		FROM   DUAL
+	</select>
+
+	<update id="updateIfBasicSegNo" parameterType="ifBasicVO">
+		UPDATE IF_BASIC_INFO
+		   SET SEG_NO     = #{segNo}
+		 WHERE IF_CAMP_ID = #{ifCampId}
+	</update>
+	
+	<update id="updateIfBasicCampNo" parameterType="ifBasicVO">
+		UPDATE IF_BASIC_INFO
+		   SET CAMP_NO    = #{campNo}
+		 WHERE IF_CAMP_ID = #{ifCampId}
+	</update>
+	 
+	<select id="getIfTaskList" parameterType="ifTaskVO" resultType="ifTaskVO">
+		SELECT *
+		  FROM 	(
+				SELECT A.RECEV_DATE, A.TASK_SEQNO, A.IF_MAKE_DATE, A.IF_CAMP_ID, RECEV_TIME,TO_CHAR(A.RECEV_TIME,'hh24:mi:ss') RECEV_TIME2, A.FILE_NAME, A.FILE_CREATE_TIME,
+				       A.WORK_STATUS, A.USE_STATUS, A.ERR_MSG,
+				       B.CD_NM  WORK_STATUS_NM, C.CD_NM  USE_STATUS_NM, D.IF_CAMP_NAME,
+				       E.CD_NM  WORK_KIND_NM,
+				       WORK_TIME,TO_CHAR(A.WORK_TIME,'hh24:mi:ss') WORK_TIME2,
+				       ROW_NUMBER() OVER (ORDER BY A.RECEV_DATE,A.TASK_SEQNO ) SEQ,
+					   COUNT(1) OVER() TOTAL_COUNT
+				  FROM IF_TASK_INFO A
+				  LEFT OUTER JOIN (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C205' AND UILANG = '000') B ON (A.WORK_STATUS = B.CD) 
+				  LEFT OUTER JOIN (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C206' AND UILANG = '000') C ON (A.USE_STATUS  = C.CD) 
+				  LEFT OUTER JOIN IF_BASIC_INFO D  ON (A.IF_CAMP_ID = D.IF_CAMP_ID) 
+				  LEFT OUTER JOIN (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C207' AND UILANG = '000') E  ON (A.WORK_KIND  = E.CD) 
+				 WHERE RECEV_DATE &gt;=  #{searchStartDt}
+				   AND RECEV_DATE &lt; #{searchEndDt}
+				   <if test="searchIfCampId != null and searchIfCampId != ''">
+				   AND A.IF_CAMP_ID LIKE '%' || #{searchIfCampId} || '%'
+				   </if>
+				   <if test="searchIfCampName != null and searchIfCampName != ''">
+				   AND D.IF_CAMP_NAME LIKE '%' || #{searchIfCampName} || '%'
+				   </if>
+				   <if test="searchDeptNo > 0">
+				   AND  D.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchStatus != null and searchStatus != ''">
+				   AND  A.STATUS = #{searchStatus}
+				   </if>
+				   <if test="searchWorkStatus != null and searchWorkStatus != ''">
+				   AND  A.WORK_STATUS = #{searchWorkStatus}
+				   </if>
+				 ORDER BY A.RECEV_DATE,A.TASK_SEQNO 			
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select> 
+	
+	<select id="getUsedIfCampNoCount" parameterType="ifBasicVO" resultType="Integer">
+		SELECT (CNT1 + CNT2) CNT
+		  FROM(
+			SELECT COUNT(1) CNT1
+			FROM   NEO_TASK A
+			WHERE  EXISTS ( SELECT 1 FROM IF_BASIC_INFO X WHERE X.IF_CAMP_ID = #{ifCampId} AND A.CAMP_NO = X.CAMP_NO )
+		  ) A1,
+		  (
+			SELECT COUNT(1) CNT2
+			FROM   TS_SERVICETYP A
+			WHERE  EAI_CAMP_NO = #{ifCampId}
+		  ) A2
+	</select>
+	 
+	<select id="getIfCleanList" parameterType="ifCleanVO" resultType="ifCleanVO">
+		SELECT *
+		  FROM (
+				SELECT T1.IF_ID
+					 , T1.IF_NAME
+					 , T1.IF_EMAIL
+					 , T1.ERR_CNT
+					 , WORK_DATE
+					 , ROW_NUMBER() OVER (ORDER BY  T1.IF_ID ) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT 
+		          FROM (  
+			  			SELECT A.IF_ID
+							 , MAX(A.IF_NAME) IF_NAME
+							 , MAX(A.IF_EMAIL) IF_EMAIL
+							 , COUNT(1) ERR_CNT
+							 , MAX(SUBSTR(A.CLEAN_YM,1,4)||'-'||SUBSTR(A.CLEAN_YM,5,2)) CLEAN_YM, MAX( TO_CHAR(A.REG_DATE,'YYYYMMDD') ) WORK_DATE
+			  			  FROM IF_CLEAN_INFO A
+			  			 WHERE A.CLEAN_YM = #{searchCleanYm}
+			  			   <if test="searchIfId != null and searchIfId != ''">
+						   AND A.IF_ID LIKE '%' || #{searchIfId} || '%'
+						   </if>
+						   <if test="searchIfName != null and searchIfName != ''">
+						   AND A.IF_NAME LIKE '%' || #{searchIfName} || '%'
+						   </if>
+						   <if test="searchIfEmail != null and searchIfEmail != ''">
+						   AND A.IF_EMAIL = #{searchIfEmail} 
+						   </if>
+			  		     GROUP BY A.IF_ID
+					   ) T1
+				 WHERE 1 = 1
+				   <if test="searchErrCnt != null and searchErrCnt != ''">
+				   AND T1.ERR_CNT >= #{searchErrCnt} 
+				   </if>
+				) TT1
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	 
+	<select id="getIfCleanPopList" parameterType="ifCleanVO" resultType="ifCleanVO">
+		SELECT *
+		  FROM (
+			    SELECT T1.CLEAN_YM
+					 , T1.IF_MAKE_DATE
+					 , T1.RECEV_SEQNO
+					 , T1.IF_CAMP_ID
+					 , T1.MID
+					 , T1.IF_ID
+					 , T1.IF_NAME
+					 , T1.IF_EMAIL
+					 , T1.RECEV_TIME
+					 , T1.SEND_TIME
+					 , T1.SEND_RES_CD
+					 , T1.IF_CAMP_NAME
+					 , T1.SEND_RES_NM
+					 , T1.ERR_CNT
+					 , ROW_NUMBER() OVER (ORDER BY T1.IF_MAKE_DATE, T1.RECEV_SEQNO ) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT 
+			     FROM (  
+					   SELECT A.CLEAN_YM
+							, TO_CHAR(TO_DATE(A.IF_MAKE_DATE,'YYYYMMDD'),'YYYY-MM-DD') IF_MAKE_DATE
+							, A.RECEV_SEQNO
+							, A.IF_CAMP_ID
+							, A.MID
+							, A.IF_ID
+							, A.IF_NAME
+							, A.IF_EMAIL
+							, A.RECEV_TIME
+							, A.SEND_TIME
+							, A.SEND_RES_CD
+							, B.IF_CAMP_NAME
+							, C.CD_NM SEND_RES_NM
+							, COUNT(1) OVER( PARTITION BY A.IF_ID, IF_EMAIL ) ERR_CNT
+						 FROM IF_CLEAN_INFO A,
+							  IF_BASIC_INFO B,
+							  (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C035' AND UILANG = '000') C
+						WHERE CLEAN_YM = #{searchCleanYm}
+						  AND A.IF_ID       = #{searchIfId}
+						  AND A.IF_CAMP_ID = B.IF_CAMP_ID
+						  AND A.SEND_RES_CD = C.CD
+						
+					) T1
+				) TT
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+</mapper>
