@@ -3604,7 +3604,128 @@
 		   </if> 
 	</select>
 	
-		
+	<select id="getUmsFaxMasterList" parameterType="umsFaxMasterVO" resultType="umsFaxMasterVO">
+		SELECT UMS_FAX_MASTER_SEQ
+			 , FROM_ID
+			 , FROM_DEPT
+			 , FROM_CNTR
+			 , FROM_GRP
+			 , FROM_TEAM
+			 , FROM_DEPT_NAME
+			 , FROM_NAME
+			 , FROM_FAX 
+			 , SUBJECT
+			 , TARGET_DATE
+			 , REG_DATE
+			 , SEND_TIME 
+			 , UPDATE_DATE 
+			 , RESERVE_GUBUN
+			 , SEND_TYPE
+			 , CHANNEL_CODE
+			 , CHANNEL_NAME
+			 , JOB_TYPE
+			 , JOB_DESC
+			 , PAGE_COUNT
+			 , TARGET_CNT
+			 , SUCCESS_CNT
+			 , FAIL_CNT
+			 , WAIT_CNT 
+			 , ATTACH01
+			 , ATTACH02
+			 , ATTACH03 
+			 , TARGET_FLAG
+			 , CONTENT
+			 , RESULT_URL
+			 , TOTAL_COUNT
+		  FROM
+			(
+				SELECT TT.UMS_FAX_MASTER_SEQ
+					 , TT.FROM_ID
+					 , TT.FROM_DEPT
+					 , TT.FROM_CNTR
+					 , TT.FROM_GRP
+					 , TT.FROM_TEAM
+					 , TT.FROM_DEPT_NAME
+					 , TT.FROM_NAME
+					 , TT.FROM_FAX 
+					 , TT.SUBJECT
+					 , TT.TARGET_DATE
+					 , TT.REG_DATE
+					 , TT.SEND_TIME 
+					 , TT.UPDATE_DATE 
+					 , TT.RESERVE_GUBUN  
+					 , TT.SEND_TYPE
+					 , TT.CHANNEL_CODE
+					 , TT.CHANNEL_NAME
+					 , TT.JOB_TYPE
+					 , TT.JOB_DESC
+					 , TT.PAGE_COUNT
+					 , TT.TARGET_CNT
+					 , TT.SUCCESS_CNT
+					 , TT.FAIL_CNT
+					 , TT.WAIT_CNT
+					 , TT.ATTACH01 
+					 , TT.ATTACH02 
+					 , TT.ATTACH03 
+					 , TT.TARGET_FLAG
+					 , TT.CONTENT
+					 , TT.RESULT_URL
+					 , ROW_NUMBER() OVER (ORDER BY TT.TARGET_DATE DESC, TT.FROM_ID, TT.FROM_NAME) SEQ 
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM UMS_FAX_MASTER TT 
+				 WHERE 1 =1 
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   AND TT.TARGET_DATE &gt;= (#{searchStartDt} || '000000')
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND TT.TARGET_DATE &lt;=  (#{searchEndDt} || '235959')
+				   </if>
+				   <if test="searchFromId != null and searchFromId != ''">
+				   AND TT.FROM_ID LIKE '%' || #{searchFromId} || '%'
+				   </if>
+				   <if test="searchFromName != null and searchFromName != ''">
+				   AND TT.FROM_NAME LIKE '%' || #{searchFromName} || '%'
+				   </if>
+				) TT
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<select id="getUmsFaxMasterInfo" parameterType="umsFaxMasterVO" resultType="umsFaxMasterVO">
+		SELECT UMS_FAX_MASTER_SEQ
+			 , FROM_ID
+			 , FROM_DEPT
+			 , FROM_CNTR
+			 , FROM_GRP
+			 , FROM_TEAM
+			 , FROM_DEPT_NAME
+			 , FROM_NAME
+			 , FROM_FAX 
+			 , SUBJECT
+			 , TARGET_DATE
+			 , REG_DATE
+			 , SEND_TIME 
+			 , UPDATE_DATE 
+			 , RESERVE_GUBUN
+			 , SEND_TYPE
+			 , CHANNEL_CODE
+			 , CHANNEL_NAME
+			 , JOB_TYPE
+			 , JOB_DESC
+			 , PAGE_COUNT
+			 , TARGET_CNT
+			 , SUCCESS_CNT
+			 , FAIL_CNT
+			 , WAIT_CNT 
+			 , ATTACH01
+			 , ATTACH02
+			 , ATTACH03 
+			 , TARGET_FLAG
+			 , CONTENT
+			 , RESULT_URL
+		  FROM UMS_FAX_MASTER
+		 WHERE UMS_FAX_MASTER_SEQ = #{searchUmsFaxMasterSeq}
+	</select>
+	
 	<select id="getSendResultRnsByKey" parameterType="string" resultType="sendLogVO">
 		SELECT TO_CHAR(Y.SDATE, '%Y%m%d%H%i') SEND_DT
 			 , X.RCODE SEND_RCODE

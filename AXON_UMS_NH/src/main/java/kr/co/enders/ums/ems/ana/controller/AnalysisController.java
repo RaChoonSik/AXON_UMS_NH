@@ -44,6 +44,7 @@ import kr.co.enders.ums.ems.ana.vo.PeriodSummVO;
 import kr.co.enders.ums.ems.ana.vo.RespLogVO;
 import kr.co.enders.ums.ems.ana.vo.SendLogVO;
 import kr.co.enders.ums.ems.ana.vo.UmsFaxSendVO;
+import kr.co.enders.ums.ems.ana.vo.UmsFaxMasterVO;
 import kr.co.enders.ums.ems.cam.service.CampaignService;
 import kr.co.enders.ums.ems.cam.vo.CampaignVO;
 import kr.co.enders.ums.ems.cam.vo.TaskVO;
@@ -8319,19 +8320,19 @@ public class AnalysisController {
 				cell = row.createCell(0); cell.setCellValue( faxSend.getToId() );
 				cell = row.createCell(1); cell.setCellValue( faxSend.getToName() );
 				cell = row.createCell(2); cell.setCellValue( faxSend.getToFax() );
-				cell = row.createCell(2); cell.setCellValue( faxSend.getFromId() );
-				cell = row.createCell(2); cell.setCellValue( faxSend.getFromCntr() );
-				cell = row.createCell(2); cell.setCellValue( faxSend.getFromGrp() );
-				cell = row.createCell(2); cell.setCellValue( faxSend.getFromTeam() );
-				cell = row.createCell(2); cell.setCellValue( faxSend.getFromName() );
-				cell = row.createCell(2); cell.setCellValue( faxSend.getFromFax() );
-				cell = row.createCell(2); cell.setCellValue( faxSend.getFaxCode() );
-				cell = row.createCell(2); cell.setCellValue( faxSend.getSubject() );
+				cell = row.createCell(3); cell.setCellValue( faxSend.getFromId() );
+				cell = row.createCell(4); cell.setCellValue( faxSend.getFromCntr() );
+				cell = row.createCell(5); cell.setCellValue( faxSend.getFromGrp() );
+				cell = row.createCell(6); cell.setCellValue( faxSend.getFromTeam() );
+				cell = row.createCell(7); cell.setCellValue( faxSend.getFromName() );
+				cell = row.createCell(8); cell.setCellValue( faxSend.getFromFax() );
+				cell = row.createCell(9); cell.setCellValue( faxSend.getFaxCode() );
+				cell = row.createCell(10); cell.setCellValue( faxSend.getSubject() );
 				
-				cell = row.createCell(3); cell.setCellValue( StringUtil.getFDate(faxSend.getTargetDate()) );
-				cell = row.createCell(3); cell.setCellValue( StringUtil.getFDate(faxSend.getSendTime()) );
+				cell = row.createCell(11); cell.setCellValue( StringUtil.getFDate(faxSend.getTargetDate()) );
+				cell = row.createCell(12); cell.setCellValue( StringUtil.getFDate(faxSend.getSendTime()) );
 				
-				cell = row.createCell(2); cell.setCellValue( faxSend.getErrorCode() );
+				cell = row.createCell(13); cell.setCellValue( faxSend.getErrorCode() );
 			}
 			
 			// 컨텐츠 타입과 파일명 지정
@@ -8346,6 +8347,222 @@ public class AnalysisController {
 		}
 	}
 	
+
+	/**
+	 *  팩스 발송(대량) 화면을 출력한다.
+	 * @param searchVO
+	 * @param model
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value="/umsFaxMasterListP")
+	public String goUmsFaxMasterListP(@ModelAttribute UmsFaxMasterVO searchVO, Model model, HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+		// 검색 기본값 설정searchStartDt
+		if(StringUtil.isNull(searchVO.getSearchStartDt())) {
+			searchVO.setSearchStartDt(StringUtil.getCalcDateFromCurr(-7, "D", "yyyyMMdd"));
+		} else {
+			searchVO.setSearchStartDt(searchVO.getSearchStartDt().replaceAll("\\.", ""));
+		}
+		
+		if(StringUtil.isNull(searchVO.getSearchEndDt())) {
+			searchVO.setSearchEndDt(StringUtil.getCalcDateFromCurr(0, "D", "yyyyMMdd"));
+		} else {
+			searchVO.setSearchEndDt(searchVO.getSearchEndDt().replaceAll("\\.", ""));
+		}
+		 
+		// 발송자 목록 조회 
+		List<UmsFaxMasterVO> faxMasterList = null;
+		try {
+			faxMasterList = analysisService.getUmsFaxMasterList(searchVO);
+		} catch(Exception e) {
+			logger.error("analysisService.getUmsFaxMasterList error = " + e);
+		}
+		
+		 
+		model.addAttribute("searchVO", searchVO); 			// 검색항목 
+		model.addAttribute("faxMasterList", faxMasterList); 		// 사용자목록  
+		
+		return "ems/ana/umsFaxMasterListP";
+	}
+	
+	/**
+	 *  팩스 발송(대량) 목록을 조회한다.
+	 * @param searchVO
+	 * @param model
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value="/umsFaxMasterList")
+	public String goUmsFaxMasterList(@ModelAttribute UmsFaxMasterVO searchVO, Model model, HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+		logger.debug("goUmsFaxMasterList SearchStdDt     = " + searchVO.getSearchStartDt());
+		logger.debug("goUmsFaxMasterList SearchEndDt       = " + searchVO.getSearchEndDt()); 
+		 
+		// 검색 기본값 설정
+		if(StringUtil.isNull(searchVO.getSearchStartDt())) {
+			searchVO.setSearchStartDt(StringUtil.getCalcDateFromCurr(-2, "D", "yyyyMMdd"));
+		} else {
+			searchVO.setSearchStartDt(searchVO.getSearchStartDt().replaceAll("\\.", ""));
+		}
+		if(StringUtil.isNull(searchVO.getSearchEndDt())) {
+			searchVO.setSearchEndDt(StringUtil.getCalcDateFromCurr(0, "D", "yyyyMMdd"));
+		} else {
+			searchVO.setSearchEndDt(searchVO.getSearchEndDt().replaceAll("\\.", ""));
+		}
+		
+		searchVO.setUilang((String)session.getAttribute("NEO_UILANG"));
+		
+		// 페이지 설정
+		int page = StringUtil.setNullToInt(searchVO.getPage(), 1);
+        int rows = StringUtil.setNullToInt(searchVO.getRows(), (int)session.getAttribute("NEO_PER_PAGE"));
+		//int rows = StringUtil.setNullToInt(searchVO.getRows(), Integer.parseInt(properties.getProperty("LIST.ROW_PER_PAGE_ANA")));
+		//int rows = StringUtil.setNullToInt((int)session.getAttribute("NEO_PER_PAGE"), Integer.parseInt(properties.getProperty("LIST.ROW_PER_PAGE_ANA")));
+		searchVO.setPage(page);
+		searchVO.setRows(rows);
+		int totalCount = 0;
+		
+		List<UmsFaxMasterVO> faxMasterList = null;
+		try {
+			// 서비스별 내역  조회 
+			faxMasterList = analysisService.getUmsFaxMasterList(searchVO);			 
+		} catch (Exception e) {
+			logger.error("analysisService.getUmsFaxMasterList error = " + e);
+		}
+		
+		
+		// 코드그룹목록(코드성) 조회 -- 개인별페이지
+		CodeVO perPage = new CodeVO();
+		perPage.setUilang(searchVO.getUilang());
+		perPage.setCdGrp("C126");
+		perPage.setUseYn("Y");
+		List<CodeVO> perPageList = null;
+		try {
+			perPageList = codeService.getCodeList(perPage);
+		} catch (Exception e) {
+			logger.error("codeService.getCodeList[126] error = " + e);
+		}
+		
+		if(faxMasterList != null && faxMasterList.size() > 0) {
+			totalCount = faxMasterList.get(0).getTotalCount();
+		}
+		
+		PageUtil pageUtil = new PageUtil();
+		pageUtil.init(request, searchVO.getPage(), totalCount, rows);
+		
+		model.addAttribute("searchVO", searchVO);			// 검색항목
+		model.addAttribute("faxMasterList", faxMasterList);		// 팩스 발송 목록  
+		model.addAttribute("pageUtil", pageUtil);			// 페이징
+		model.addAttribute("perPageList", perPageList);		//개인별페이지
+		
+		return "ems/ana/umsFaxMasterList";
+	}
+ 
+	
+	/**
+	 *  팩스 발송(대량)목록 내역 엑셀을 다운로드한다.
+	 * @param searchVO
+	 * @param model
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value="/umsFaxMasterExcelList")
+	public void goUmsFaxMasterExcelList(@ModelAttribute UmsFaxMasterVO searchVO, Model model, HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+		logger.debug("umsFaxMasterExcelList SearchStdDt     = " + searchVO.getSearchStartDt());
+		logger.debug("umsFaxMasterExcelList SearchEndDt       = " + searchVO.getSearchEndDt()); 
+		 
+		// 페이지 설정
+		int page = 1;
+		int rows = 9999999;
+		searchVO.setPage(page);
+		searchVO.setRows(rows);
+		
+		
+		searchVO.setSearchStartDt(searchVO.getSearchStartDt().replaceAll("\\.", ""));  
+		searchVO.setSearchStartDt(searchVO.getSearchStartDt().substring(0,8));
+		
+		searchVO.setSearchEndDt(searchVO.getSearchEndDt().replaceAll("\\.", ""));  
+		searchVO.setSearchEndDt(searchVO.getSearchEndDt().substring(0,8));
+		 
+		
+		List<UmsFaxMasterVO> faxMasterList = null;
+		try {
+			// 서비스별 내역  조회 
+			faxMasterList = analysisService.getUmsFaxMasterList(searchVO);			 
+		} catch (Exception e) {
+			logger.error("analysisService.getUmsFaxMasterList error = " + e);
+		}
+		
+		try {
+			
+			String fileName = "FAX_MASTER_" + StringUtil.getDate(Code.TM_YMDHMS) + ".xlsx";
+			logger.debug("#### FileName = " + fileName);
+			
+			// 엑셀 생성
+			XSSFWorkbook wb = new XSSFWorkbook();
+			XSSFSheet sheet = wb.createSheet("Data");
+			Row row = null;
+			Cell cell = null;
+			int rowNum = 0;
+			
+			// 헤더 색상 지정
+			XSSFCellStyle headerStyle = wb.createCellStyle();
+			headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+			headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+			
+			 
+			row = sheet.createRow(rowNum++); 
+			cell = row.createCell(0); cell.setCellStyle(headerStyle); cell.setCellValue("FROM ID");
+			cell = row.createCell(1); cell.setCellStyle(headerStyle); cell.setCellValue("FROM CNTR");
+			cell = row.createCell(2); cell.setCellStyle(headerStyle); cell.setCellValue("FROM GRP");
+			cell = row.createCell(3); cell.setCellStyle(headerStyle); cell.setCellValue("FROM TEAM");
+			cell = row.createCell(4); cell.setCellStyle(headerStyle); cell.setCellValue("FROM NAME");
+			cell = row.createCell(5); cell.setCellStyle(headerStyle); cell.setCellValue("FROM FAX");
+			cell = row.createCell(6); cell.setCellStyle(headerStyle); cell.setCellValue("SUBJECT");
+			cell = row.createCell(7); cell.setCellStyle(headerStyle); cell.setCellValue("TARGET DATE");
+			cell = row.createCell(8); cell.setCellStyle(headerStyle); cell.setCellValue("SEND TIME");
+			cell = row.createCell(9); cell.setCellStyle(headerStyle); cell.setCellValue("TARGET CNT");
+			cell = row.createCell(10); cell.setCellStyle(headerStyle); cell.setCellValue("SUCCESS CNT");
+			cell = row.createCell(11); cell.setCellStyle(headerStyle); cell.setCellValue("FAIL CNT");
+			cell = row.createCell(12); cell.setCellStyle(headerStyle); cell.setCellValue("WAIT CNT");
+			
+			
+			// 엑셀 내용 추가
+			for(UmsFaxMasterVO faxSend:faxMasterList) {
+				row = sheet.createRow(rowNum++); 
+				cell = row.createCell(0); cell.setCellValue( faxSend.getFromId() );
+				cell = row.createCell(1); cell.setCellValue( faxSend.getFromCntr() );
+				cell = row.createCell(2); cell.setCellValue( faxSend.getFromGrp() );
+				cell = row.createCell(3); cell.setCellValue( faxSend.getFromTeam() );
+				cell = row.createCell(4); cell.setCellValue( faxSend.getFromName() );
+				cell = row.createCell(5); cell.setCellValue( faxSend.getFromFax() );
+				cell = row.createCell(6); cell.setCellValue( faxSend.getSubject() );
+				
+				cell = row.createCell(7); cell.setCellValue( StringUtil.getFDate(faxSend.getTargetDate()) );
+				cell = row.createCell(8); cell.setCellValue( StringUtil.getFDate(faxSend.getSendTime()) );
+				
+				cell = row.createCell(9); cell.setCellValue( faxSend.getTargetCnt() );
+				cell = row.createCell(10); cell.setCellValue( faxSend.getSuccessCnt() );
+				cell = row.createCell(11); cell.setCellValue( faxSend.getFailCnt() );
+				cell = row.createCell(12); cell.setCellValue( faxSend.getWaitCnt() );
+				
+			}
+			
+			// 컨텐츠 타입과 파일명 지정
+			response.setContentType("ms-vnd/excel");
+			response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
+			
+			// 엑셀 파일 다운로드
+			wb.write(response.getOutputStream());
+			wb.close();
+		} catch(Exception e) {
+			logger.error("Excel File Download Error = " + e);
+		}
+	}
 }
 
 

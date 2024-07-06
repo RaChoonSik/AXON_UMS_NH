@@ -17,6 +17,7 @@ import kr.co.enders.ums.ems.ana.vo.MailSummVO;
 import kr.co.enders.ums.ems.ana.vo.PeriodSummVO;
 import kr.co.enders.ums.ems.ana.vo.RespLogVO;
 import kr.co.enders.ums.ems.ana.vo.SendLogVO;
+import kr.co.enders.ums.ems.ana.vo.UmsFaxMasterVO;
 import kr.co.enders.ums.ems.ana.vo.UmsFaxSendVO;
 import kr.co.enders.ums.ems.cam.vo.CampaignVO;
 import kr.co.enders.ums.ems.cam.vo.TaskVO;
@@ -302,6 +303,12 @@ public class AnalysisDAO implements AnalysisMapper {
 	}
 	
 	@Override
+	public List<UmsFaxMasterVO> getUmsFaxMasterList(UmsFaxMasterVO umsFaxMasterVO) throws Exception {
+		return sqlSessionEms.getMapper(AnalysisMapper.class).getUmsFaxMasterList(umsFaxMasterVO);
+		
+	}
+	
+	@Override
 	public List<UmsFaxSendVO> getUmsFaxSendList(UmsFaxSendVO umsFaxSendVO) throws Exception {
 		return sqlSessionEms.getMapper(AnalysisMapper.class).getUmsFaxSendList(umsFaxSendVO);
 		
@@ -310,6 +317,13 @@ public class AnalysisDAO implements AnalysisMapper {
 	@Override
 	public UmsFaxSendVO getUmsFaxInfo(UmsFaxSendVO umsFaxSendVO) throws Exception {
 		return sqlSessionEms.getMapper(AnalysisMapper.class).getUmsFaxInfo(umsFaxSendVO);
+		
+	}
+	
+	
+	@Override
+	public UmsFaxMasterVO getUmsFaxMasterInfo(UmsFaxMasterVO umsFaxMasterVO) throws Exception {
+		return sqlSessionEms.getMapper(AnalysisMapper.class).getUmsFaxMasterInfo(umsFaxMasterVO);
 		
 	}
 	

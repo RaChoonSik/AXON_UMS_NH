@@ -15,6 +15,7 @@ import kr.co.enders.ums.ems.ana.vo.MailSummVO;
 import kr.co.enders.ums.ems.ana.vo.PeriodSummVO;
 import kr.co.enders.ums.ems.ana.vo.RespLogVO;
 import kr.co.enders.ums.ems.ana.vo.SendLogVO;
+import kr.co.enders.ums.ems.ana.vo.UmsFaxMasterVO;
 import kr.co.enders.ums.ems.ana.vo.UmsFaxSendVO;
 import kr.co.enders.ums.ems.cam.vo.CampaignVO;
 import kr.co.enders.ums.ems.cam.vo.TaskVO;
@@ -430,6 +431,15 @@ public interface AnalysisService {
 	 */
 	public List<UmsFaxSendVO> getUmsFaxSendList(UmsFaxSendVO umsFaxSendVO) throws Exception ;
 	
+	
+	/**
+	 * UMS FAX 발송(대량)목록 조회  
+	 * @param umsFaxMasterVO
+	 * @return
+	 * @throws Exception
+	 */
+	public List<UmsFaxMasterVO> getUmsFaxMasterList(UmsFaxMasterVO umsFaxMasterVO) throws Exception ;
+	
 	/**
 	 * UMS FAX 발송 정보
 	 * @param umsFaxSendVO
@@ -438,6 +448,14 @@ public interface AnalysisService {
 	 */
 	public UmsFaxSendVO getUmsFaxInfo(UmsFaxSendVO umsFaxSendVO) throws Exception ;
 	
+ 
+	/**
+	 * UMS FAX 발송 정보
+	 * @param umsFaxMasterVO
+	 * @return
+	 * @throws Exception
+	 */
+	public UmsFaxMasterVO getUmsFaxMasterInfo(UmsFaxMasterVO umsFaxMasterVO) throws Exception ;
 	
 	/**
 	 * 실시간 메일 발송 결과

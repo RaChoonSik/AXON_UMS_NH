@@ -118,6 +118,7 @@
 		
 		<!-- NH 손보 추가 -->
 		<typeAlias alias="umsFaxSendVO"		type="kr.co.enders.ums.ems.ana.vo.UmsFaxSendVO" />
+		<typeAlias alias="umsFaxMasterVO"		type="kr.co.enders.ums.ems.ana.vo.UmsFaxMasterVO" />
 	</typeAliases>
 
 	<mappers>

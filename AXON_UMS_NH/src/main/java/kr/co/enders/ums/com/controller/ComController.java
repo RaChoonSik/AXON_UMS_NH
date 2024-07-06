@@ -54,6 +54,7 @@ import kr.co.enders.ums.com.vo.CodeVO;
 import kr.co.enders.ums.com.vo.DownloadVO;
 import kr.co.enders.ums.com.vo.UploadVO;
 import kr.co.enders.ums.ems.ana.service.AnalysisService;
+import kr.co.enders.ums.ems.ana.vo.UmsFaxMasterVO;
 import kr.co.enders.ums.ems.ana.vo.UmsFaxSendVO;
 import kr.co.enders.util.CaptchaUtil;
 import kr.co.enders.util.PropertiesUtil;
@@ -1021,6 +1022,92 @@ public class ComController {
 			}
 		} else {
 			logger.error("faxAttachDownload down type not correct");
+			return;
+		}
+		
+		
+	}
+	
+	
+	/** NH 손보 
+	 * FAX 첨부 파일을 다운로드 한다.
+	 * @param downloadVO
+	 * @param request
+	 * @param response
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/faxMasterAttachDown")
+	public void faxMasterAttachDownload(@ModelAttribute DownloadVO downloadVO, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		logger.debug("faxMasterAttachDownload downType = " + downloadVO.getDownType());
+		logger.debug("faxMasterAttachDownload requestKey = " + downloadVO.getRequestKey());
+		logger.debug("faxMasterAttachDownload segNo = " + downloadVO.getSeqNo());
+ 
+		
+		// 팩스 첨부 파일 
+		if("010".equals(downloadVO.getDownType())) { 
+			
+			//FAX 키와 순번으로 파일명을 가져옴 
+			//찾으려는 파일의 정보가 있는 지 확인 
+			int umsFaxMasterSeq = StringUtil.getStringToInt(downloadVO.getRequestKey());
+			int umsFaxAttachSeq = downloadVO.getSeqNo();
+			if ( umsFaxMasterSeq > 0 ){
+				UmsFaxMasterVO searchUmsFaxMasterVO = new UmsFaxMasterVO();
+				searchUmsFaxMasterVO.setSearchUmsFaxMasterSeq(umsFaxMasterSeq); 
+				
+				UmsFaxMasterVO umsFaxMasterVO = analysisService.getUmsFaxMasterInfo(searchUmsFaxMasterVO);
+				
+				if(umsFaxMasterVO == null) {
+					logger.error("faxMasterAttachDownload attach file info not exist");
+					return;
+				}
+				String fileName = "";
+				String filePath = "";
+				
+				switch(umsFaxAttachSeq) {
+				case 1: 
+					filePath = umsFaxMasterVO.getAttach01();
+					break;
+				case 2: 
+					filePath = umsFaxMasterVO.getAttach02();
+					break;
+				case 3: 
+					filePath = umsFaxMasterVO.getAttach03();
+					break;
+				}
+				
+				if( "".equals(filePath)) {
+					logger.error("fileMasterDownload attach file info not exist"); 
+					return;
+				} 
+				 
+				filePath = properties.getProperty("FILE.FAX_PATH") + "/" + filePath;
+				
+				logger.debug("fileMasterDownload fileName = " + fileName);
+				logger.debug("fileMasterDownload filePath = " + filePath);
+				
+				File downTargetFile = new File(filePath);
+				
+				if (!downTargetFile.exists()) {
+					logger.error("fileMasterDownload target file  missing"); 
+					return;
+				}  else {
+					byte fileBytes[] = FileUtils.readFileToByteArray(downTargetFile);
+					
+					response.setContentType("application/octet-stream");
+					response.setContentLength(fileBytes.length);
+					response.setHeader("Content-Disposition", "attachment; fileName=\"" + URLEncoder.encode(fileName,"UTF-8") + "\";");
+					response.setHeader("Content-Trasfer-Encoding", "binary");
+					response.getOutputStream().write(fileBytes);
+					
+					response.getOutputStream().flush();
+					response.getOutputStream().close();
+				} 
+			} else {
+				logger.error("faxMasterAttachDownload fax seq not exist");
+				return;
+			}
+		} else {
+			logger.error("faxMasterAttachDownload down type not correct");
 			return;
 		}
 		

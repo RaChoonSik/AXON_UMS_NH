@@ -17,6 +17,7 @@ import kr.co.enders.ums.ems.ana.vo.MailSummVO;
 import kr.co.enders.ums.ems.ana.vo.PeriodSummVO;
 import kr.co.enders.ums.ems.ana.vo.RespLogVO;
 import kr.co.enders.ums.ems.ana.vo.SendLogVO;
+import kr.co.enders.ums.ems.ana.vo.UmsFaxMasterVO;
 import kr.co.enders.ums.ems.ana.vo.UmsFaxSendVO;
 import kr.co.enders.ums.ems.cam.vo.CampaignVO;
 import kr.co.enders.ums.ems.cam.vo.TaskVO;
@@ -297,8 +298,19 @@ public class AnalysisServiceImpl implements AnalysisService {
 	}
 	
 	@Override
+	public UmsFaxMasterVO getUmsFaxMasterInfo(UmsFaxMasterVO umsFaxMasterVO) throws Exception {
+		return analysisDAO.getUmsFaxMasterInfo(umsFaxMasterVO);
+	}
+	
+	@Override
 	public List<UmsFaxSendVO> getUmsFaxSendList(UmsFaxSendVO umsFaxSendVO) throws Exception {
 		return analysisDAO.getUmsFaxSendList(umsFaxSendVO);
+	}
+	
+	
+	@Override
+	public List<UmsFaxMasterVO> getUmsFaxMasterList(UmsFaxMasterVO umsFaxMasterVO) throws Exception {
+		return analysisDAO.getUmsFaxMasterList(umsFaxMasterVO);
 	}
 	
 	@Override
